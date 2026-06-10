@@ -1,5 +1,4 @@
-import re
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from google_calendar import (
     extract_whatsapp_number,
     is_already_reminded,
@@ -48,21 +47,21 @@ def test_build_reminder_marker():
 
 
 def test_needs_reminder_in_window():
-    from datetime import datetime, timedelta
+    from datetime import datetime
     now = datetime(2026, 6, 10, 15, 20)
     end_time = datetime(2026, 6, 10, 15, 35)
     assert needs_reminder(end_time, now, reminder_minutes=15, scan_interval=30) is True
 
 
 def test_needs_reminder_too_early():
-    from datetime import datetime, timedelta
+    from datetime import datetime
     now = datetime(2026, 6, 10, 14, 00)
     end_time = datetime(2026, 6, 10, 15, 35)
     assert needs_reminder(end_time, now, reminder_minutes=15, scan_interval=30) is False
 
 
 def test_needs_reminder_too_late():
-    from datetime import datetime, timedelta
+    from datetime import datetime
     now = datetime(2026, 6, 10, 15, 55)
     end_time = datetime(2026, 6, 10, 15, 35)
     assert needs_reminder(end_time, now, reminder_minutes=15, scan_interval=30) is False
@@ -94,7 +93,7 @@ def test_mark_event_reminded_appends_marker():
     mock_events = MagicMock()
     mock_update = MagicMock()
     mock_service.events.return_value = mock_events
-    mock_events.update.return_value = mock_update
+    mock_events.patch.return_value = mock_update
     mock_update.execute.return_value = {}
 
     event = {
@@ -105,6 +104,6 @@ def test_mark_event_reminded_appends_marker():
 
     mark_event_reminded(mock_service, "primary", event, now)
 
-    mock_events.update.assert_called_once()
-    updated_body = mock_events.update.call_args[1]["body"]
+    mock_events.patch.assert_called_once()
+    updated_body = mock_events.patch.call_args[1]["body"]
     assert "[已提醒 2026-06-10 15:30]" in updated_body["description"]

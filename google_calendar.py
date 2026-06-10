@@ -56,8 +56,8 @@ def mark_event_reminded(service, calendar_id: str, event: dict, now: datetime) -
     marker = build_reminder_marker(now)
     new_description = (description + "\n" + marker).strip()
 
-    service.events().update(
+    service.events().patch(
         calendarId=calendar_id,
-        eventId=event["id"],
+        eventId=event.get("id", ""),
         body={"description": new_description},
     ).execute()
