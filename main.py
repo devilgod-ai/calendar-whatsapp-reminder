@@ -7,7 +7,7 @@ from googleapiclient.discovery import build
 from twilio.rest import Client
 from telegram import Bot
 
-from config import load_config
+from config import load_config, Config
 from google_calendar import (
     extract_whatsapp_number,
     is_already_reminded,
@@ -52,7 +52,7 @@ async def process_event(
         await notify_skip(telegram_bot, telegram_chat_id, event_title, end_time_str)
         return
 
-    success = send_whatsapp_reminder(
+    success, error = send_whatsapp_reminder(
         client=twilio_client,
         from_number=twilio_from,
         to_number=whatsapp_number,
@@ -61,23 +61,30 @@ async def process_event(
     )
 
     if success:
-        mark_event_reminded(calendar_service, calendar_id, event, now)
-        await notify_success(
-            telegram_bot, telegram_chat_id, event_title, end_time_str, whatsapp_number
-        )
+        marked = mark_event_reminded(calendar_service, calendar_id, event, now)
+        if marked:
+            await notify_success(
+                telegram_bot, telegram_chat_id, event_title, end_time_str, whatsapp_number
+            )
+        else:
+            await notify_failure(
+                telegram_bot,
+                telegram_chat_id,
+                event_title,
+                whatsapp_number,
+                "WhatsApp sent but failed to mark event",
+            )
     else:
         await notify_failure(
             telegram_bot,
             telegram_chat_id,
             event_title,
             whatsapp_number,
-            "Twilio send failed",
+            error or "Unknown error",
         )
 
 
-async def run() -> None:
-    config = load_config()
-
+async def run(config: Config) -> None:
     credentials = service_account.Credentials.from_service_account_file(
         config.google_credentials_file,
         scopes=["https://www.googleapis.com/auth/calendar.events"],
@@ -112,11 +119,19 @@ async def run() -> None:
 
 def main():
     try:
-        asyncio.run(run())
-    except Exception as e:
         config = load_config()
-        bot = Bot(token=config.telegram_bot_token)
-        asyncio.run(notify_system_error(bot, config.telegram_chat_id, str(e)))
+    except ValueError as e:
+        print(f"Config error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        asyncio.run(run(config))
+    except Exception as e:
+        try:
+            bot = Bot(token=config.telegram_bot_token)
+            asyncio.run(notify_system_error(bot, config.telegram_chat_id, str(e)))
+        except Exception:
+            print(f"Fatal error (Telegram unavailable): {e}", file=sys.stderr)
         sys.exit(1)
 
 

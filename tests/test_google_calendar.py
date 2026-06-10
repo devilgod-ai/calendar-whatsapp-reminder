@@ -102,8 +102,9 @@ def test_mark_event_reminded_appends_marker():
     }
     now = datetime(2026, 6, 10, 15, 30)
 
-    mark_event_reminded(mock_service, "primary", event, now)
+    result = mark_event_reminded(mock_service, "primary", event, now)
 
+    assert result is True
     mock_events.patch.assert_called_once()
     updated_body = mock_events.patch.call_args[1]["body"]
     assert "[已提醒 2026-06-10 15:30]" in updated_body["description"]

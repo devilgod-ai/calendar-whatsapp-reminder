@@ -54,13 +54,17 @@ def fetch_upcoming_events(service, calendar_id: str) -> list[dict]:
     return events_result.get("items", [])
 
 
-def mark_event_reminded(service, calendar_id: str, event: dict, now: datetime) -> None:
+def mark_event_reminded(service, calendar_id: str, event: dict, now: datetime) -> bool:
     description = event.get("description", "")
     marker = _build_reminder_marker(now)
     new_description = (description + "\n" + marker).strip()
 
-    service.events().patch(
-        calendarId=calendar_id,
-        eventId=event.get("id", ""),
-        body={"description": new_description},
-    ).execute()
+    try:
+        service.events().patch(
+            calendarId=calendar_id,
+            eventId=event.get("id", ""),
+            body={"description": new_description},
+        ).execute()
+        return True
+    except Exception:
+        return False

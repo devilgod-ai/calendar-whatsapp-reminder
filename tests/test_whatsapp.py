@@ -14,7 +14,7 @@ def test_send_whatsapp_reminder_formats_message():
         end_time_str="15:30",
     )
 
-    assert result is True
+    assert result == (True, "")
     call_args = mock_client.messages.create.call_args[1]
     assert call_args["from_"] == "whatsapp:+14155238886"
     assert call_args["to"] == "whatsapp:+85212345678"
@@ -37,4 +37,5 @@ def test_send_whatsapp_reminder_returns_false_on_error():
         end_time_str="15:30",
     )
 
-    assert result is False
+    assert result[0] is False
+    assert "Bad request" in result[1]

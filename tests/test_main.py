@@ -19,7 +19,8 @@ def test_process_event_with_valid_whatsapp_and_in_window():
     mock_calendar = MagicMock()
     mock_telegram_bot = AsyncMock()
 
-    with patch("main.send_whatsapp_reminder", return_value=True) as mock_send_whatsapp:
+    with patch("main.send_whatsapp_reminder", return_value=(True, "")) as mock_send_whatsapp, \
+         patch("main.mark_event_reminded", return_value=True) as mock_mark:
         asyncio.run(main.process_event(
             event=event,
             calendar_service=mock_calendar,
@@ -34,6 +35,7 @@ def test_process_event_with_valid_whatsapp_and_in_window():
         ))
 
         mock_send_whatsapp.assert_called_once()
+        mock_mark.assert_called_once()
         mock_telegram_bot.send_message.assert_called_once()
         assert "\u2705" in mock_telegram_bot.send_message.call_args[1]["text"]
 
@@ -120,7 +122,8 @@ def test_process_event_whatsapp_failure_does_not_mark():
     mock_calendar = MagicMock()
     mock_telegram_bot = AsyncMock()
 
-    with patch("main.send_whatsapp_reminder", return_value=False) as mock_send_whatsapp:
+    with patch("main.send_whatsapp_reminder", return_value=(False, "Bad request")) as mock_send_whatsapp, \
+         patch("main.mark_event_reminded") as mock_mark:
         asyncio.run(main.process_event(
             event=event,
             calendar_service=mock_calendar,
@@ -135,5 +138,5 @@ def test_process_event_whatsapp_failure_does_not_mark():
         ))
 
         mock_send_whatsapp.assert_called_once()
-        mock_calendar.events.assert_not_called()
+        mock_mark.assert_not_called()
         assert "\u274c" in mock_telegram_bot.send_message.call_args[1]["text"]

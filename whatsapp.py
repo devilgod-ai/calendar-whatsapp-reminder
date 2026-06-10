@@ -11,7 +11,7 @@ def send_whatsapp_reminder(
     to_number: str,
     event_title: str,
     end_time_str: str,
-) -> bool:
+) -> tuple[bool, str]:
     body = MESSAGE_TEMPLATE.format(title=event_title, time=end_time_str)
     try:
         client.messages.create(
@@ -19,6 +19,8 @@ def send_whatsapp_reminder(
             to=f"whatsapp:{to_number}",
             body=body,
         )
-        return True
-    except TwilioRestException:
-        return False
+        return True, ""
+    except TwilioRestException as e:
+        return False, str(e)
+    except Exception as e:
+        return False, str(e)
