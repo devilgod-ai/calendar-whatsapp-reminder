@@ -1,6 +1,6 @@
 import asyncio
 from unittest.mock import AsyncMock
-from telegram import notify_success, notify_skip, notify_failure, notify_system_error
+from telegram_notifier import notify_success, notify_skip, notify_failure, notify_system_error
 
 
 def test_notify_success_formats_message():
@@ -69,7 +69,8 @@ def test_notify_system_error_formats_message():
 
 def test_notify_handles_send_error():
     mock_bot = AsyncMock()
-    mock_bot.send_message.side_effect = Exception("Network error")
+    from telegram.error import TelegramError
+    mock_bot.send_message.side_effect = TelegramError("Network error")
     result = asyncio.run(notify_system_error(
         bot=mock_bot,
         chat_id="123",

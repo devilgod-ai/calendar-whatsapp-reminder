@@ -1,19 +1,20 @@
-from typing import TYPE_CHECKING
+import asyncio
+from telegram import Bot
+from telegram.error import TelegramError
 
-if TYPE_CHECKING:
-    from telegram import Bot
 
-
-async def _send(bot: "Bot", chat_id: str, text: str) -> bool:
+async def _send(bot: Bot, chat_id: str, text: str) -> bool:
     try:
         await bot.send_message(chat_id=chat_id, text=text)
         return True
-    except Exception:
+    except asyncio.CancelledError:
+        raise
+    except TelegramError:
         return False
 
 
 async def notify_success(
-    bot: "Bot",
+    bot: Bot,
     chat_id: str,
     event_title: str,
     end_time_str: str,
@@ -29,7 +30,7 @@ async def notify_success(
 
 
 async def notify_skip(
-    bot: "Bot",
+    bot: Bot,
     chat_id: str,
     event_title: str,
     end_time_str: str,
@@ -43,7 +44,7 @@ async def notify_skip(
 
 
 async def notify_failure(
-    bot: "Bot",
+    bot: Bot,
     chat_id: str,
     event_title: str,
     whatsapp_number: str,
@@ -59,7 +60,7 @@ async def notify_failure(
 
 
 async def notify_system_error(
-    bot: "Bot",
+    bot: Bot,
     chat_id: str,
     error_detail: str,
 ) -> bool:
