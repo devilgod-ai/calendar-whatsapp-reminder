@@ -2,7 +2,7 @@ import re
 from datetime import datetime, timedelta, timezone
 
 
-WHATSAPP_RE = re.compile(r"WhatsApp:\s*(\+?[\d\s\-]+)")
+WHATSAPP_RE = re.compile(r"WhatsApp:\s*(\+?[\d\- ]+)")
 REMINDER_MARKER_RE = re.compile(r"\[已提醒")
 
 
@@ -10,7 +10,10 @@ def extract_whatsapp_number(description: str) -> str | None:
     if not description:
         return None
     match = WHATSAPP_RE.search(description)
-    return match.group(1).strip() if match else None
+    if match:
+        raw = match.group(1).strip()
+        return raw.replace(" ", "").replace("-", "")
+    return None
 
 
 def is_already_reminded(description: str) -> bool:

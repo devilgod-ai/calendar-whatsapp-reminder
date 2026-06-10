@@ -21,7 +21,7 @@ def test_extract_whatsapp_number_without_plus():
 
 def test_extract_whatsapp_number_with_spaces():
     desc = "WhatsApp: +852 1234 5678\nOther"
-    assert extract_whatsapp_number(desc) == "+852 1234 5678"
+    assert extract_whatsapp_number(desc) == "+85212345678"
 
 
 def test_extract_whatsapp_number_not_found():
