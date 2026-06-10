@@ -13,6 +13,7 @@ class Config:
     telegram_bot_token: str
     telegram_chat_id: str
     reminder_minutes: int
+    scan_interval_minutes: int
 
 
 def load_config() -> Config:
@@ -40,5 +41,11 @@ def load_config() -> Config:
         values["reminder_minutes"] = int(reminder_raw)
     except ValueError:
         raise ValueError(f"Invalid REMINDER_MINUTES value: {reminder_raw}")
+
+    scan_raw = os.getenv("SCAN_INTERVAL_MINUTES", "30")
+    try:
+        values["scan_interval_minutes"] = int(scan_raw)
+    except ValueError:
+        raise ValueError(f"Invalid SCAN_INTERVAL_MINUTES value: {scan_raw}")
 
     return Config(**values)

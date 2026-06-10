@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 from google_calendar import (
     extract_whatsapp_number,
     is_already_reminded,
-    build_reminder_marker,
+    _build_reminder_marker,
     needs_reminder,
     fetch_upcoming_events,
     mark_event_reminded,
@@ -42,7 +42,7 @@ def test_is_already_reminded_false():
 def test_build_reminder_marker():
     from datetime import datetime
     now = datetime(2026, 6, 10, 15, 30)
-    marker = build_reminder_marker(now)
+    marker = _build_reminder_marker(now)
     assert marker == "[已提醒 2026-06-10 15:30]"
 
 

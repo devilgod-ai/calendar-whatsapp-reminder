@@ -102,8 +102,10 @@ async def run() -> None:
                 telegram_chat_id=config.telegram_chat_id,
                 now=now,
                 reminder_minutes=config.reminder_minutes,
-                scan_interval=30,
+                scan_interval=config.scan_interval_minutes,
             )
+        except asyncio.CancelledError:
+            raise
         except Exception as e:
             await notify_system_error(telegram_bot, config.telegram_chat_id, str(e))
 

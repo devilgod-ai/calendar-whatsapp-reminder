@@ -19,7 +19,7 @@ def is_already_reminded(description: str) -> bool:
     return bool(REMINDER_MARKER_RE.search(description))
 
 
-def build_reminder_marker(timestamp: datetime) -> str:
+def _build_reminder_marker(timestamp: datetime) -> str:
     return f"[已提醒 {timestamp.strftime('%Y-%m-%d %H:%M')}]"
 
 
@@ -53,7 +53,7 @@ def fetch_upcoming_events(service, calendar_id: str) -> list[dict]:
 
 def mark_event_reminded(service, calendar_id: str, event: dict, now: datetime) -> None:
     description = event.get("description", "")
-    marker = build_reminder_marker(now)
+    marker = _build_reminder_marker(now)
     new_description = (description + "\n" + marker).strip()
 
     service.events().patch(
