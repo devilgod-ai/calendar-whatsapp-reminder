@@ -2,8 +2,6 @@ import os
 from dataclasses import dataclass
 from dotenv import load_dotenv
 
-load_dotenv()
-
 
 @dataclass
 class Config:
@@ -18,6 +16,8 @@ class Config:
 
 
 def load_config() -> Config:
+    load_dotenv()
+
     required = {
         "GOOGLE_CREDENTIALS_FILE": "google_credentials_file",
         "TWILIO_ACCOUNT_SID": "twilio_account_sid",
@@ -34,5 +34,11 @@ def load_config() -> Config:
         values[attr] = value
 
     values["google_calendar_id"] = os.getenv("GOOGLE_CALENDAR_ID", "primary")
-    values["reminder_minutes"] = int(os.getenv("REMINDER_MINUTES", "15"))
+
+    reminder_raw = os.getenv("REMINDER_MINUTES", "15")
+    try:
+        values["reminder_minutes"] = int(reminder_raw)
+    except ValueError:
+        raise ValueError(f"Invalid REMINDER_MINUTES value: {reminder_raw}")
+
     return Config(**values)

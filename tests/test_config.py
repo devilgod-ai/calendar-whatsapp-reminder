@@ -1,16 +1,15 @@
-import os
 import pytest
 from config import load_config, Config
 
 
-def test_load_config_reads_all_required_fields():
-    os.environ["GOOGLE_CREDENTIALS_FILE"] = "test_creds.json"
-    os.environ["GOOGLE_CALENDAR_ID"] = "primary"
-    os.environ["TWILIO_ACCOUNT_SID"] = "AC_test"
-    os.environ["TWILIO_AUTH_TOKEN"] = "token_test"
-    os.environ["TWILIO_FROM_NUMBER"] = "whatsapp:+15551234567"
-    os.environ["TELEGRAM_BOT_TOKEN"] = "bot_test"
-    os.environ["TELEGRAM_CHAT_ID"] = "123456789"
+def test_load_config_reads_all_required_fields(monkeypatch):
+    monkeypatch.setenv("GOOGLE_CREDENTIALS_FILE", "test_creds.json")
+    monkeypatch.setenv("GOOGLE_CALENDAR_ID", "primary")
+    monkeypatch.setenv("TWILIO_ACCOUNT_SID", "AC_test")
+    monkeypatch.setenv("TWILIO_AUTH_TOKEN", "token_test")
+    monkeypatch.setenv("TWILIO_FROM_NUMBER", "whatsapp:+15551234567")
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot_test")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "123456789")
 
     config = load_config()
 
@@ -23,19 +22,23 @@ def test_load_config_reads_all_required_fields():
     assert config.telegram_chat_id == "123456789"
 
 
-def test_load_config_uses_default_reminder_minutes():
-    os.environ["GOOGLE_CREDENTIALS_FILE"] = "test_creds.json"
-    os.environ["TWILIO_ACCOUNT_SID"] = "AC_test"
-    os.environ["TWILIO_AUTH_TOKEN"] = "token_test"
-    os.environ["TWILIO_FROM_NUMBER"] = "whatsapp:+15551234567"
-    os.environ["TELEGRAM_BOT_TOKEN"] = "bot_test"
-    os.environ["TELEGRAM_CHAT_ID"] = "123456789"
+def test_load_config_uses_default_reminder_minutes(monkeypatch):
+    monkeypatch.setenv("GOOGLE_CREDENTIALS_FILE", "test_creds.json")
+    monkeypatch.setenv("TWILIO_ACCOUNT_SID", "AC_test")
+    monkeypatch.setenv("TWILIO_AUTH_TOKEN", "token_test")
+    monkeypatch.setenv("TWILIO_FROM_NUMBER", "whatsapp:+15551234567")
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot_test")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "123456789")
 
     config = load_config()
     assert config.reminder_minutes == 15
 
 
-def test_load_config_missing_required_raises():
-    os.environ.pop("TWILIO_ACCOUNT_SID", None)
+def test_load_config_missing_required_raises(monkeypatch):
+    monkeypatch.setenv("GOOGLE_CREDENTIALS_FILE", "test_creds.json")
+    monkeypatch.setenv("TWILIO_AUTH_TOKEN", "token_test")
+    monkeypatch.setenv("TWILIO_FROM_NUMBER", "whatsapp:+15551234567")
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot_test")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "123456789")
     with pytest.raises(ValueError, match="TWILIO_ACCOUNT_SID"):
         load_config()
