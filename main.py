@@ -38,6 +38,8 @@ async def process_event(
     if not end_str:
         return
     end_time = datetime.fromisoformat(end_str)
+    if end_time.tzinfo is None:
+        end_time = end_time.replace(tzinfo=timezone.utc)
 
     if not needs_reminder(end_time, now, reminder_minutes, scan_interval):
         return
