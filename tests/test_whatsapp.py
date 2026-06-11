@@ -1,41 +1,59 @@
-from unittest.mock import MagicMock
+from unittest.mock import patch, MagicMock
 from whatsapp import send_whatsapp_reminder
 
 
-def test_send_whatsapp_reminder_formats_message():
-    mock_client = MagicMock()
-    mock_client.messages.create.return_value = MagicMock(sid="SM_test123")
+WAHA_URL = "http://localhost:3000"
 
-    result = send_whatsapp_reminder(
-        client=mock_client,
-        from_number="whatsapp:+14155238886",
-        to_number="+85212345678",
-        event_title="Doctor Appointment",
-        end_time_str="15:30",
-    )
+
+def test_send_whatsapp_reminder_formats_message():
+    with patch("whatsapp.requests.post") as mock_post:
+        mock_post.return_value = MagicMock(status_code=200, json=lambda: {})
+
+        result = send_whatsapp_reminder(
+            waha_api_url=WAHA_URL,
+            to_number="+85212345678",
+            event_title="Doctor Appointment",
+            end_time_str="15:30",
+        )
 
     assert result == (True, "")
-    call_args = mock_client.messages.create.call_args[1]
-    assert call_args["from_"] == "whatsapp:+14155238886"
-    assert call_args["to"] == "whatsapp:+85212345678"
-    assert "Doctor Appointment" in call_args["body"]
-    assert "15:30" in call_args["body"]
+    call_body = mock_post.call_args[1]["json"]
+    assert call_body["session"] == "default"
+    assert call_body["chatId"] == "85212345678@c.us"
+    assert "Doctor Appointment" in call_body["text"]
+    assert "15:30" in call_body["text"]
+    assert mock_post.call_args[0][0] == f"{WAHA_URL}/api/sendText"
 
 
-def test_send_whatsapp_reminder_returns_false_on_error():
-    from twilio.base.exceptions import TwilioRestException
-    mock_client = MagicMock()
-    mock_client.messages.create.side_effect = TwilioRestException(
-        status=400, uri="http://example.com", msg="Bad request"
-    )
+def test_send_whatsapp_reminder_returns_false_on_network_error():
+    with patch("whatsapp.requests.post") as mock_post:
+        mock_post.side_effect = ConnectionError("Connection refused")
 
-    result = send_whatsapp_reminder(
-        client=mock_client,
-        from_number="whatsapp:+14155238886",
-        to_number="+85212345678",
-        event_title="Test",
-        end_time_str="15:30",
-    )
+        result = send_whatsapp_reminder(
+            waha_api_url=WAHA_URL,
+            to_number="+85212345678",
+            event_title="Test",
+            end_time_str="15:30",
+        )
 
     assert result[0] is False
-    assert "Bad request" in result[1]
+    assert "Connection refused" in result[1]
+
+
+def test_send_whatsapp_reminder_returns_false_on_http_error():
+    with patch("whatsapp.requests.post") as mock_post:
+        mock_post.return_value = MagicMock(
+            status_code=400,
+            json=lambda: {"error": "Invalid chat ID"},
+            text="Invalid chat ID",
+        )
+
+        result = send_whatsapp_reminder(
+            waha_api_url=WAHA_URL,
+            to_number="+85212345678",
+            event_title="Test",
+            end_time_str="15:30",
+        )
+
+    assert result[0] is False
+    assert "400" in result[1] or "Invalid" in result[1]
