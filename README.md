@@ -21,11 +21,15 @@ Google Calendar ─→ main.py ─→ WAHA API ─→ 客戶 WhatsApp
 
 ### 1. WAHA WhatsApp API
 
+可以在本機或另一台伺服器執行。
+
 ```bash
 docker run -d -p 3000:3000 devlike/whatsapp-http-api
 ```
 
-開啟 `http://localhost:3000`，用手機 WhatsApp 掃描 QR 碼完成配對。
+開啟 `http://<伺服器IP>:3000`，用手機 WhatsApp 掃描 QR 碼完成配對。
+
+> ⚠️ 若 WAHA 在遠端伺服器，請確保該伺服器的 3000 port 有對外開放（或使用 VPN／SSH tunnel）。
 
 ### 2. Google Calendar Service Account
 
@@ -51,7 +55,14 @@ cp .env.example .env
 ```env
 GOOGLE_CREDENTIALS_FILE=credentials.json
 GOOGLE_CALENDAR_ID=primary
+
+# WAHA 在本機
 WAHA_API_URL=http://localhost:3000
+
+# WAHA 在遠端伺服器（擇一使用）
+# WAHA_API_URL=http://192.168.1.100:3000
+# WAHA_API_URL=https://waha.example.com
+
 TELEGRAM_BOT_TOKEN=你的機器人Token
 TELEGRAM_CHAT_ID=你的Chat ID
 REMINDER_MINUTES=15
