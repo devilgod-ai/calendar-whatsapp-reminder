@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, timezone
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from twilio.rest import Client
 from telegram import Bot
 
 from config import load_config, Config
@@ -23,8 +22,7 @@ async def process_event(
     event: dict,
     calendar_service,
     calendar_id: str,
-    twilio_client: Client,
-    twilio_from: str,
+    waha_api_url: str,
     telegram_bot: Bot,
     telegram_chat_id: str,
     now: datetime,
@@ -55,8 +53,7 @@ async def process_event(
         return
 
     success, error = send_whatsapp_reminder(
-        client=twilio_client,
-        from_number=twilio_from,
+        waha_api_url=waha_api_url,
         to_number=whatsapp_number,
         event_title=event_title,
         end_time_str=end_time_str,
@@ -93,7 +90,6 @@ async def run(config: Config) -> None:
     )
     calendar_service = build("calendar", "v3", credentials=credentials)
 
-    twilio_client = Client(config.twilio_account_sid, config.twilio_auth_token)
     telegram_bot = Bot(token=config.telegram_bot_token)
 
     now = datetime.now(timezone.utc)
@@ -105,13 +101,12 @@ async def run(config: Config) -> None:
                 event=event,
                 calendar_service=calendar_service,
                 calendar_id=config.google_calendar_id,
-                twilio_client=twilio_client,
-                twilio_from=config.twilio_from_number,
+                waha_api_url=config.waha_api_url,
                 telegram_bot=telegram_bot,
                 telegram_chat_id=config.telegram_chat_id,
                 now=now,
                 reminder_minutes=config.reminder_minutes,
-                scan_interval=config.scan_interval_minutes,
+                scan_interval=config.scan_interval,
             )
         except asyncio.CancelledError:
             raise
